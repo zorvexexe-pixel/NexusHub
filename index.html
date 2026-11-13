@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusHub — Premium Workspace</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { color-scheme: dark; }
+        body { background: radial-gradient(ellipse at 15% 0%, rgba(99,102,241,.16), transparent 38%), #070914 !important; }
+        #sidebar, header, .bg-white.dark\:bg-slate-900 { background: rgba(13,16,33,.94) !important; }
+        #sidebar { border-color: rgba(148,163,184,.14) !important; }
+        main { background: transparent; }
+        .rounded-2xl { border-radius: 18px; }
+        .border-slate-200, .dark\:border-slate-800 { border-color: rgba(148,163,184,.16) !important; }
+        input, textarea { background-color: rgba(30,35,62,.8) !important; color: #f8fafc !important; }
+        .nexus-card { background: linear-gradient(145deg,rgba(24,29,57,.94),rgba(13,16,34,.96)); border:1px solid rgba(139,92,246,.22); box-shadow:0 18px 50px rgba(0,0,0,.22); }
+        .nexus-btn { background:linear-gradient(110deg,#6366f1,#9333ea); color:white; border-radius:12px; padding:10px 15px; font-size:13px; font-weight:700; }
+        .nexus-btn:hover { filter:brightness(1.12); }
+        .nexus-input { width:100%; border:1px solid rgba(148,163,184,.22); border-radius:12px; padding:11px 13px; outline:none; }
+        .nexus-input:focus { border-color:#8b5cf6; box-shadow:0 0 0 3px rgba(139,92,246,.16); }
+        .nav-extra { color:#a5b4fc; }
+        .pill { display:inline-flex; align-items:center; padding:4px 9px; border-radius:999px; background:rgba(99,102,241,.16); color:#c4b5fd; font-size:11px; }
+        .friend-row { display:flex; align-items:center; gap:12px; padding:13px; border:1px solid rgba(148,163,184,.13); border-radius:14px; background:rgba(30,35,62,.45); }
+        .avatar { width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#6366f1,#a855f7);font-weight:800;color:white;flex-shrink:0; }
+        .tab-chip { padding:9px 13px;border-radius:10px;background:rgba(148,163,184,.1);font-size:12px; }
+        .tab-chip.active { background:#6d5ce8;color:white; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
+
+    <!-- Google sign-in screen -->
+    <div id="auth-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-5" style="background:radial-gradient(ellipse at top,rgba(99,102,241,.25),transparent 55%),#070914">
+      <div class="w-full max-w-md rounded-3xl border border-violet-400/20 p-8 text-center" style="background:rgba(13,16,33,.96);box-shadow:0 25px 80px rgba(0,0,0,.45)">
+        <div class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-3xl text-white"><i class="fa-solid fa-layer-group"></i></div>
+        <p class="text-xs font-bold uppercase tracking-[.25em] text-violet-300">Zorvex presents</p>
+        <h1 class="mt-2 text-3xl font-extrabold text-white">NexusHub</h1>
+        <p class="mt-3 text-sm text-slate-400">Sign in to access your dashboard and community.</p>
+        <button id="google-signin" class="mt-7 flex w-full items-center justify-center gap-3 rounded-xl bg-white px-5 py-3 font-bold text-slate-900 hover:bg-slate-100"><i class="fa-brands fa-google text-lg"></i> Continue with Google</button>
+        <p id="auth-message" class="mt-4 min-h-5 text-xs text-rose-300" role="status"></p>
+        <p class="mt-4 text-[11px] text-slate-500">Your Google account is used only to sign you in.</p>
+      </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="app" class="flex h-full overflow-hidden" style="display:none">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 z-20">
+            <div>
+                <!-- Brand / Logo -->
+                <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">NexusHub</span>
+                    </div>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="p-4 space-y-1.5">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        <span>Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('tasks')" id="nav-tasks" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all">
+                        <i class="fa-solid fa-list-check w-5 text-center"></i>
+                        <span>Task Manager</span>
+                    </button>
+                    <button onclick="switchTab('notes')" id="nav-notes" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all">
+                        <i class="fa-solid fa-note-sticky w-5 text-center"></i>
+                        <span>Quick Notes</span>
+                    </button>
+                    <button onclick="switchTab('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all">
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                        <span>Analytics</span>
+                    </button>
+                    <div class="px-4 pt-4 pb-1 text-[10px] uppercase tracking-[.2em] text-slate-500">Community</div>
+                    <button onclick="switchTab('friends')" id="nav-friends" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-300 hover:bg-slate-800/60 transition-all"><i class="fa-solid fa-user-group w-5 text-center"></i><span>Friends</span></button>
+                    <button onclick="switchTab('leaderboards')" id="nav-leaderboards" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-300 hover:bg-slate-800/60 transition-all"><i class="fa-solid fa-trophy w-5 text-center"></i><span>Leaderboards</span></button>
+                    <button onclick="switchTab('messages')" id="nav-messages" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-300 hover:bg-slate-800/60 transition-all"><i class="fa-solid fa-comments w-5 text-center"></i><span>Messages</span></button>
+                    <button onclick="switchTab('profile')" id="nav-profile" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-300 hover:bg-slate-800/60 transition-all"><i class="fa-solid fa-id-card w-5 text-center"></i><span>My Profile</span></button>
+                    <button onclick="switchTab('notifications')" id="nav-notifications" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-300 hover:bg-slate-800/60 transition-all"><i class="fa-solid fa-bell w-5 text-center"></i><span>Notifications</span></button>
+                </nav>
+            </div>
+
+            <!-- Sidebar Footer / Theme Toggle -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all">
+                    <span class="flex items-center space-x-2">
+                        <i id="theme-icon" class="fa-solid fa-moon text-slate-500"></i>
+                        <span id="theme-text">Dark Mode</span>
+                    </span>
+                    <span class="w-8 h-4 bg-slate-300 dark:bg-indigo-600 rounded-full relative transition-colors">
+                        <span id="theme-toggle-dot" class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform dark:translate-x-4"></span>
+                    </span>
+                </button>
+                <div class="flex items-center space-x-3 px-2 py-1">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
+                        JD
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-semibold truncate">Jane Doe</p>
+                        <p class="text-[10px] text-slate-500 truncate">jane.doe@example.com</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden">
+            <!-- Top Header -->
+            <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-10">
+                <div class="flex items-center space-x-4">
+                    <h1 id="page-title" class="text-xl font-bold tracking-tight">Dashboard Overview</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Global Search -->
+                    <div class="relative hidden sm:block">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" placeholder="Search anything..." class="bg-slate-100 dark:bg-slate-800 text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 transition-all">
+                    </div>
+                    <div class="hidden sm:flex items-center gap-2 text-xs text-slate-400"><img id="auth-user-photo" class="hidden h-7 w-7 rounded-full" alt="Account photo"><span id="auth-user-name"></span></div>
+                    <button id="signout-button" class="rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800">Sign out</button>
+                    <!-- Notification Bell -->
+                    <button onclick="triggerNotification('You have 3 unread messages.')" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all relative">
+                        <i class="fa-regular fa-bell text-sm"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-indigo-600 rounded-full"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Body Content Areas -->
+            <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+                <!-- Toast Notification Box -->
+                <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+                <!-- 1. DASHBOARD TAB -->
+                <div id="tab-dashboard" class="space-y-6">
+                    <!-- Metric Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Card 1 -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Users</span>
+                                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-baseline space-x-2">
+                                <span class="text-2xl font-bold">24,582</span>
+                                <span class="text-xs font-semibold text-emerald-500 flex items-center"><i class="fa-solid fa-arrow-up mr-1"></i>+12%</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Compared to last month</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Tasks</span>
+                                <div class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-list-check"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-baseline space-x-2">
+                                <span class="text-2xl font-bold" id="dash-task-count">0</span>
+                                <span class="text-xs font-semibold text-emerald-500 flex items-center"><i class="fa-solid fa-arrow-up mr-1"></i>+4%</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Pending completion</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Conversion Rate</span>
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-chart-pie"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-baseline space-x-2">
+                                <span class="text-2xl font-bold">3.48%</span>
+                                <span class="text-xs font-semibold text-rose-500 flex items-center"><i class="fa-solid fa-arrow-down mr-1"></i>-0.2%</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Average conversion</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">System Load</span>
+                                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-baseline space-x-2">
+                                <span class="text-2xl font-bold">42%</span>
+                                <span class="text-xs font-semibold text-emerald-500 flex items-center">Optimal</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Server health check</p>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Row: Quick Overview / Mock Weather & Recent Activities -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Left 2 cols: Recent Activities -->
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="font-bold text-base">Recent Activities</h2>
+                                <button onclick="triggerNotification('Activity log refreshed!')" class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Refresh</button>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
+                                        <i class="fa-solid fa-user-plus"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold truncate">New user registered</p>
+                                        <p class="text-xs text-slate-500 truncate">Alex Smith joined the workspace platform.</p>
+                                    </div>
+                                    <span class="text-xs text-slate-400 whitespace-nowrap">2m ago</span>
+                                </div>
+                                <div class="flex items-center space-x-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold truncate">Task list updated</p>
+                                        <p class="text-xs text-slate-500 truncate">Quarterly review document finalized.</p>
+                                    </div>
+                                    <span class="text-xs text-slate-400 whitespace-nowrap">15m ago</span>
+                                </div>
+                                <div class="flex items-center space-x-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                    <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400 flex items-center justify-center flex-shrink-0">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold truncate">Database Backup</p>
+                                        <p class="text-xs text-slate-500 truncate">Automated snapshot successfully completed.</p>
+                                    </div>
+                                    <span class="text-xs text-slate-400 whitespace-nowrap">1h ago</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right 1 col: Mini Weather Card -->
+                        <div class="bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-semibold tracking-wider uppercase opacity-80">Local Weather</span>
+                                    <i class="fa-solid fa-cloud-sun text-xl"></i>
+                                </div>
+                                <div class="mt-6">
+                                    <h3 class="text-3xl font-extrabold">24°C</h3>
+                                    <p class="text-sm opacity-90 mt-1">Partly Cloudy</p>
+                                    <p class="text-xs opacity-75 mt-0.5">San Francisco, CA</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 pt-4 border-t border-white/20 grid grid-cols-3 text-center text-xs">
+                                <div>
+                                    <span class="opacity-75 block">Humidity</span>
+                                    <span class="font-bold">64%</span>
+                                </div>
+                                <div>
+                                    <span class="opacity-75 block">Wind</span>
+                                    <span class="font-bold">12 km/h</span>
+                                </div>
+                                <div>
+                                    <span class="opacity-75 block">Air</span>
+                                    <span class="font-bold">Good</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TASK MANAGER TAB -->
+                <div id="tab-tasks" class="space-y-6 hidden">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                            <div>
+                                <h2 class="font-bold text-lg">Task List</h2>
+                                <p class="text-xs text-slate-500">Manage your daily priorities and workflow items</p>
+                            </div>
+                            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                <input type="text" id="new-task-input" placeholder="Add a new task..." class="flex-1 sm:w-72 bg-slate-100 dark:bg-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                                <button onclick="addTask()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-500/25 flex items-center space-x-2">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Add</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Task Items Container -->
+                        <div id="tasks-list-container" class="space-y-3">
+                            <!-- Tasks populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. NOTES TAB -->
+                <div id="tab-notes" class="space-y-6 hidden">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 class="font-bold text-lg">Quick Notes</h2>
+                                <p class="text-xs text-slate-500">Jot down quick ideas and thoughts instantly</p>
+                            </div>
+                            <button onclick="addNote()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-500/25 flex items-center space-x-2">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span>New Note</span>
+                            </button>
+                        </div>
+                        <div id="notes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Notes populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. ANALYTICS TAB -->
+                <div id="tab-analytics" class="space-y-6 hidden">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <h2 class="font-bold text-lg mb-2">Performance Analytics</h2>
+                        <p class="text-xs text-slate-500 mb-6">Detailed engagement metrics over the current cycle</p>
+                        
+                        <!-- Visual Mock Chart Bars -->
+                        <div class="h-64 flex items-end justify-between space-x-2 pt-6 pb-2 px-4 border-b border-slate-200 dark:border-slate-800">
+                            <div class="w-full bg-indigo-100 dark:bg-indigo-950/50 rounded-t-xl flex flex-col justify-end items-center h-full group relative">
+                                <div class="w-full bg-indigo-600 rounded-t-xl transition-all h-[60%] group-hover:bg-indigo-500"></div>
+                                <span class="text-[10px] text-slate-400 mt-2">Mon</span>
+                            </div>
+                            <div class="w-full bg-indigo-100 dark:bg-indigo-950/50 rounded-t-xl flex flex-col justify-end items-center h-full group relative">
+                                <div class="w-full bg-indigo-600 rounded-t-xl transition-all h-[80%] group-hover:bg-indigo-500"></div>
+                                <span class="text-[10px] text-slate-400 mt-2">Tue</span>
+                            </div>
+                            <div class="w-full bg-indigo-100 dark:bg-indigo-950/50 rounded-t-xl flex flex-col justify-end items-center h-full group relative">
+                                <div class="w-full bg-indigo-600 rounded-t-xl transition-all h-[45%] group-hover:bg-indigo-500"></div>
+                                <span class="text-[10px] text-slate-400 mt-2">Wed</span>
+                            </div>
+                            <div class="w-full bg-indigo-100 dark:bg-indigo-950/50 rounded-t-xl flex flex-col justify-end items-center h-full group relative">
+                                <div class="w-full bg-indigo-600 rounded-t-xl transition-all h-[95%] group-hover:bg-indigo-500"></div>
+                                <span class="text-[10px] text-slate-400 mt-2">Thu</span>
+                            </div>
+                            <div class="w-full bg-indigo-100 dark:bg-indigo-950/50 rounded-t-xl flex flex-col justify-end items-center h-full group relative">
+                                <div class="w-full bg-indigo-600 rounded-t-xl transition-all h-[70%] group-hover:bg-indigo-500"></div>
+                                <span class="text-[10px] text-slate-400 mt-2">Fri</span>
+                            </div>
+                            <div class="w-full bg-indigo-100 dark:bg-indigo-950/50 rounded-t-xl flex flex-col justify-end items-center h-full group relative">
+                                <div class="w-full bg-indigo-600 rounded-t-xl transition-all h-[40%] group-hover:bg-indigo-500"></div>
+                                <span class="text-[10px] text-slate-400 mt-2">Sat</span>
+                            </div>
+                            <div class="w-full bg-indigo-100 dark:bg-indigo-950/50 rounded-t-xl flex flex-col justify-end items-center h-full group relative">
+                                <div class="w-full bg-indigo-600 rounded-t-xl transition-all h-[55%] group-hover:bg-indigo-500"></div>
+                                <span class="text-[10px] text-slate-400 mt-2">Sun</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+                            <span>Showing weekly visitor trends</span>
+                            <span class="font-semibold text-emerald-500">+18.4% this week</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FRIENDS -->
+                <section id="tab-friends" class="hidden space-y-6">
+                  <div class="nexus-card rounded-2xl p-6"><div class="flex flex-wrap justify-between gap-3 items-center"><div><h2 class="text-xl font-bold">Friends Hub</h2><p class="text-xs text-slate-400 mt-1">Find people using their UID or nickname</p></div><span class="pill">Social workspace</span></div>
+                    <div class="grid md:grid-cols-3 gap-3 mt-5"><input id="friend-search" class="nexus-input md:col-span-2" placeholder="Enter UID or nickname"><button class="nexus-btn" onclick="sendFriendRequest()"><i class="fa-solid fa-user-plus mr-2"></i>Send request</button></div>
+                    <p class="text-xs text-slate-500 mt-2">Demo mode: requests are saved on this device only.</p>
+                  </div>
+                  <div class="grid lg:grid-cols-2 gap-5"><div class="nexus-card rounded-2xl p-5"><h3 class="font-bold mb-4">Your Friends <span id="friend-count" class="pill ml-2">0</span></h3><div id="friends-list" class="space-y-3"></div></div><div class="nexus-card rounded-2xl p-5"><h3 class="font-bold mb-4">Friend Requests</h3><div id="requests-list" class="space-y-3"></div></div></div>
+                </section>
+
+                <!-- SEPARATE LEADERBOARDS -->
+                <section id="tab-leaderboards" class="hidden space-y-5"><div class="nexus-card rounded-2xl p-6"><h2 class="text-xl font-bold">Leaderboards</h2><p class="text-xs text-slate-400 mt-1">Separate rankings for every category · Weekly cycle</p><div class="flex flex-wrap gap-2 mt-5"><button class="tab-chip active" onclick="showBoard('global',this)">Global</button><button class="tab-chip" onclick="showBoard('friends',this)">Friends</button><button class="tab-chip" onclick="showBoard('tasks',this)">Task completion</button><button class="tab-chip" onclick="showBoard('xp',this)">XP & Points</button></div><div id="leaderboard-content" class="mt-5"></div></div></section>
+
+                <!-- MESSAGES -->
+                <section id="tab-messages" class="hidden space-y-5"><div class="nexus-card rounded-2xl p-5"><h2 class="text-xl font-bold">Messages</h2><p class="text-xs text-slate-400 mt-1">Text, emoji, image and voice message interface</p><div class="grid md:grid-cols-[220px_1fr] gap-4 mt-5"><div id="chat-contacts" class="space-y-2"></div><div class="rounded-xl border border-slate-700/50 p-4 min-h-[360px] flex flex-col"><div id="chat-title" class="font-semibold border-b border-slate-700/50 pb-3">Choose a friend</div><div id="chat-feed" class="flex-1 py-4 space-y-3 text-sm text-slate-300"><p class="text-slate-500 text-xs">Select a friend to open a local demo chat.</p></div><div class="flex gap-2"><input id="chat-input" class="nexus-input" placeholder="Write a message or emoji…" onkeydown="if(event.key==='Enter')sendMessage()"><button class="nexus-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button></div><div class="flex gap-3 mt-3 text-xs"><label class="text-violet-300 cursor-pointer"><i class="fa-regular fa-image mr-1"></i>Image<input type="file" accept="image/*" class="hidden" onchange="sendImage(this)"></label><button class="text-violet-300" onclick="recordVoice()"><i class="fa-solid fa-microphone mr-1"></i>Voice message</button></div></div></div><p class="text-xs text-amber-300 mt-3">Messaging is a local preview. Real delivery between different users needs a secure backend.</p></div></section>
+
+                <!-- PROFILE -->
+                <section id="tab-profile" class="hidden space-y-5"><div class="nexus-card rounded-2xl p-6"><h2 class="text-xl font-bold">My Profile</h2><div class="flex flex-wrap gap-5 items-center mt-5"><div class="avatar !w-20 !h-20 text-2xl" id="profile-avatar">JD</div><div><div id="profile-name" class="text-xl font-bold">Jane Doe</div><div class="text-xs text-slate-400 mt-1">UID: <span id="profile-uid">NX-2048-731</span></div><div class="flex gap-2 mt-2"><span class="pill">Level 12</span><span class="pill">2,450 XP</span></div></div></div><div class="grid md:grid-cols-2 gap-3 mt-6"><label class="text-xs text-slate-400">Nickname<input id="profile-nickname" class="nexus-input mt-2" value="Jane Doe"></label><label class="text-xs text-slate-400">Profile picture (image)<input id="profile-picture" type="file" accept="image/*" class="nexus-input mt-2" onchange="previewAvatar(this)"></label><label class="text-xs text-slate-400 md:col-span-2">Bio<textarea id="profile-bio" class="nexus-input mt-2" rows="3" placeholder="Write a little about yourself…"></textarea></label></div><button class="nexus-btn mt-4" onclick="saveProfile()">Save profile</button><div class="grid grid-cols-3 gap-3 mt-6"><div class="rounded-xl bg-slate-800/60 p-4"><div class="text-2xl font-bold">2,450</div><div class="text-xs text-slate-400">XP</div></div><div class="rounded-xl bg-slate-800/60 p-4"><div class="text-2xl font-bold" id="profile-friends-count">0</div><div class="text-xs text-slate-400">Friends</div></div><div class="rounded-xl bg-slate-800/60 p-4"><div class="text-2xl font-bold">6</div><div class="text-xs text-slate-400">Badges</div></div></div><div class="mt-5"><h3 class="font-bold mb-3">Achievements & badges</h3><div class="flex flex-wrap gap-2"><span class="pill">🏆 Early achiever</span><span class="pill">⚡ Task streak</span><span class="pill">🌟 Helpful friend</span><span class="pill">🎯 Focus master</span></div></div></div></section>
+
+                <!-- NOTIFICATIONS -->
+                <section id="tab-notifications" class="hidden space-y-5"><div class="nexus-card rounded-2xl p-6"><h2 class="text-xl font-bold">Notification Center</h2><p class="text-xs text-slate-400 mt-1">Choose which updates you want to see</p><div id="notification-settings" class="mt-5 space-y-4"><label class="flex items-center justify-between border-b border-slate-700/40 pb-3 text-sm"><span>Friend requests</span><input type="checkbox" class="accent-violet-500 w-4 h-4" checked data-notify="friend"></label><label class="flex items-center justify-between border-b border-slate-700/40 pb-3 text-sm"><span>Private messages</span><input type="checkbox" class="accent-violet-500 w-4 h-4" checked data-notify="message"></label><label class="flex items-center justify-between border-b border-slate-700/40 pb-3 text-sm"><span>Task reminders</span><input type="checkbox" class="accent-violet-500 w-4 h-4" checked data-notify="task"></label><label class="flex items-center justify-between border-b border-slate-700/40 pb-3 text-sm"><span>Leaderboard changes</span><input type="checkbox" class="accent-violet-500 w-4 h-4" checked data-notify="leaderboard"></label><label class="flex items-center justify-between border-b border-slate-700/40 pb-3 text-sm"><span>Achievements & badges</span><input type="checkbox" class="accent-violet-500 w-4 h-4" checked data-notify="achievement"></label><label class="flex items-center justify-between border-b border-slate-700/40 pb-3 text-sm"><span>Friend activity</span><input type="checkbox" class="accent-violet-500 w-4 h-4" checked data-notify="activity"></label></div><button class="nexus-btn mt-5" onclick="saveNotificationSettings()">Save preferences</button></div><div class="nexus-card rounded-2xl p-6"><h3 class="font-bold mb-3">Recent notifications</h3><div id="notification-feed" class="space-y-3"></div></div></section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State Management
+        let tasks = [
+            { id: 1, text: 'Review quarterly project milestones', completed: true },
+            { id: 2, text: 'Prepare weekly team synchronization', completed: false },
+            { id: 3, text: 'Update UI component documentation', completed: false }
+        ];
+
+        let notes = [
+            { id: 1, title: 'Project Roadmap', content: 'Focus on scaling performance and refining dashboard aesthetics for mobile viewports.' },
+            { id: 2, title: 'Ideas for Q3', content: 'Incorporate real-time collaboration features and advanced data filtering tools.' }
+        ];
+
+        // Navigation: keep all original sections and add community pages.
+        const allTabs = ['dashboard','tasks','notes','analytics','friends','leaderboards','messages','profile','notifications'];
+        function switchTab(tabId) {
+            allTabs.forEach(t => {
+                const el=document.getElementById(`tab-${t}`), nav=document.getElementById(`nav-${t}`);
+                if(el) el.classList.toggle('hidden',t!==tabId);
+                if(nav) nav.className = t===tabId ? "w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all bg-indigo-500/15 text-violet-300" : "w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-300 hover:bg-slate-800/60 transition-all";
+            });
+            const titles={dashboard:'Dashboard Overview',tasks:'Task Manager',notes:'Quick Notes',analytics:'Performance Analytics',friends:'Friends Hub',leaderboards:'Leaderboards',messages:'Messages',profile:'My Profile',notifications:'Notification Center'};
+            document.getElementById('page-title').innerText=titles[tabId]||'NexusHub';
+            if(tabId==='friends') renderFriends(); if(tabId==='leaderboards') showBoard('global'); if(tabId==='messages') renderChatContacts(); if(tabId==='notifications') renderNotifications();
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            document.getElementById('theme-text').innerText = isDark ? 'Light Mode' : 'Dark Mode';
+            document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-500';
+            triggerNotification(isDark ? 'Switched to Dark Mode' : 'Switched to Light Mode');
+        }
+
+        // Toast Notification System (Replaces alert/confirm safely)
+        function triggerNotification(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "pointer-events-auto bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3 transition-all transform translate-y-2 opacity-0";
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-indigo-400"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Render Tasks
+        function renderTasks() {
+            const container = document.getElementById('tasks-list-container');
+            document.getElementById('dash-task-count').innerText = tasks.filter(t => !t.completed).length;
+            
+            if (tasks.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No tasks remaining. Great job!</p>`;
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => `
+                <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 transition-all">
+                    <label class="flex items-center space-x-3 cursor-pointer flex-1">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <span class="text-sm ${task.completed ? 'line-through text-slate-400 dark:text-slate-500' : ''}">${task.text}</span>
+                    </label>
+                    <button onclick="deleteTask(${task.id})" class="text-slate-400 hover:text-rose-500 transition-colors px-2 py-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addTask() {
+            const input = document.getElementById('new-task-input');
+            const val = input.value.trim();
+            if (!val) return;
+            tasks.push({ id: Date.now(), text: val, completed: false });
+            input.value = '';
+            renderTasks();
+            triggerNotification('Task added successfully!');
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+            triggerNotification('Task deleted.');
+        }
+
+        // Render Notes
+        function renderNotes() {
+            const container = document.getElementById('notes-grid');
+            if (notes.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4 col-span-full">No notes added yet.</p>`;
+                return;
+            }
+
+            container.innerHTML = notes.map(note => `
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3">
+                    <div>
+                        <h3 class="font-semibold text-sm mb-1">${note.title}</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${note.content}</p>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-2 border-t border-slate-200 dark:border-slate-700/50">
+                        <button onclick="deleteNote(${note.id})" class="text-slate-400 hover:text-rose-500 text-xs transition-colors">
+                            <i class="fa-solid fa-trash-can"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNote() {
+            const title = prompt('Enter note title:') || 'Untitled Note';
+            const content = prompt('Enter note content:') || 'No description provided.';
+            notes.push({ id: Date.now(), title, content });
+            renderNotes();
+            triggerNotification('New note created!');
+        }
+
+        function deleteNote(id) {
+            notes = notes.filter(n => n.id !== id);
+            renderNotes();
+            triggerNotification('Note removed.');
+        }
+
+
+        // Community demo data. Stored locally; online sync requires a backend.
+        const loadStore=(key,fallback)=>{try{return JSON.parse(localStorage.getItem('nexus_'+key))??fallback}catch{return fallback}};
+        const saveStore=(key,val)=>localStorage.setItem('nexus_'+key,JSON.stringify(val));
+        let friends=loadStore('friends',[{uid:'NX-1001',name:'Alex Smith',xp:3200,tasks:28,online:true},{uid:'NX-1002',name:'Mia Chen',xp:2850,tasks:24,online:false},{uid:'NX-1003',name:'Noah Lee',xp:2100,tasks:19,online:true}]);
+        let requests=loadStore('requests',[{uid:'NX-1044',name:'Sam Rivera'}]);
+        let chats=loadStore('chats',{}), activeChat='';
+        let notices=loadStore('notices',[{text:'Welcome to NexusHub Community!',time:'Just now'}]);
+        function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        function renderFriends(){
+          document.getElementById('friend-count').textContent=friends.length;document.getElementById('profile-friends-count').textContent=friends.length;
+          document.getElementById('friends-list').innerHTML=friends.length?friends.map(f=>`<div class="friend-row"><div class="avatar">${safe(f.name.slice(0,1))}</div><div class="flex-1 min-w-0"><div class="font-semibold text-sm">${safe(f.name)}</div><div class="text-xs text-slate-400">${safe(f.uid)} · ${f.online?'🟢 Online':'⚫ Offline'}</div></div><button class="text-xs text-rose-300" onclick="removeFriend('${safe(f.uid)}')">Remove</button></div>`).join(''):'<p class="text-xs text-slate-500">No friends yet. Search by UID or nickname.</p>';
+          document.getElementById('requests-list').innerHTML=requests.length?requests.map(r=>`<div class="friend-row"><div class="avatar">${safe(r.name[0])}</div><div class="flex-1"><div class="font-semibold text-sm">${safe(r.name)}</div><div class="text-xs text-slate-400">${safe(r.uid)}</div></div><button class="nexus-btn" onclick="acceptRequest('${safe(r.uid)}')">Accept</button><button class="text-xs text-rose-300" onclick="declineRequest('${safe(r.uid)}')">Decline</button></div>`).join(''):'<p class="text-xs text-slate-500">No pending requests.</p>';
+        }
+        function sendFriendRequest(){const q=document.getElementById('friend-search').value.trim();if(!q)return triggerNotification('Enter a UID or nickname first.');if(friends.some(f=>f.uid.toLowerCase()===q.toLowerCase()||f.name.toLowerCase()===q.toLowerCase()))return triggerNotification('This friend is already in your list.');if(requests.some(f=>f.uid.toLowerCase()===q.toLowerCase()||f.name.toLowerCase()===q.toLowerCase()))return triggerNotification('Request already pending.');requests.push({uid:q.toUpperCase().startsWith('NX-')?q.toUpperCase():'NX-'+Math.floor(1000+Math.random()*8999),name:q});saveStore('requests',requests);document.getElementById('friend-search').value='';renderFriends();addNotice('Friend request sent to '+q);triggerNotification('Demo friend request created.');}
+        function acceptRequest(uid){const r=requests.find(x=>x.uid===uid);if(r){friends.push({...r,xp:0,tasks:0,online:false});requests=requests.filter(x=>x.uid!==uid);saveStore('friends',friends);saveStore('requests',requests);renderFriends();addNotice(r.name+' accepted as friend');}}
+        function declineRequest(uid){requests=requests.filter(x=>x.uid!==uid);saveStore('requests',requests);renderFriends();}
+        function removeFriend(uid){friends=friends.filter(x=>x.uid!==uid);saveStore('friends',friends);renderFriends();}
+        const boardData={global:[['Mia Chen',9850],['Alex Smith',9200],['You',2450],['Noah Lee',2100]],friends:[],tasks:[['Alex Smith',28],['Mia Chen',24],['Noah Lee',19],['You',12]],xp:[['Mia Chen',9850],['Alex Smith',9200],['Noah Lee',6100],['You',2450]]};
+        function showBoard(type,btn){document.querySelectorAll('.tab-chip').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');const data=type==='friends'?friends.map(f=>[f.name,f.xp]).concat([['You',2450]]).sort((a,b)=>b[1]-a[1]):boardData[type];const unit=type==='tasks'?'tasks':type==='global'||type==='friends'||type==='xp'?'XP':'points';document.getElementById('leaderboard-content').innerHTML=`<div class="flex items-center justify-between mb-3"><span class="text-xs text-slate-400">${type==='tasks'?'Completed tasks':'Weekly '+unit+' ranking'}</span><span class="pill">Resets every week</span></div>`+data.sort((a,b)=>b[1]-a[1]).map((r,i)=>`<div class="friend-row mb-2"><div class="text-lg w-8 text-center">${['🥇','🥈','🥉'][i]||'#'+(i+1)}</div><div class="avatar">${r[0]==='You'?'Y':safe(r[0][0])}</div><div class="flex-1 font-semibold text-sm">${safe(r[0])} ${r[0]==='You'?'<span class="pill ml-2">You</span>':''}</div><div class="font-bold text-violet-300">${r[1].toLocaleString()} <span class="text-[10px] text-slate-500">${unit}</span></div></div>`).join('');}
+        function renderChatContacts(){document.getElementById('chat-contacts').innerHTML=friends.map(f=>`<button class="friend-row w-full text-left" onclick="openChat('${safe(f.uid)}')"><div class="avatar">${safe(f.name[0])}</div><div><div class="text-sm font-semibold">${safe(f.name)}</div><div class="text-xs text-slate-400">${f.online?'Online':'Offline'}</div></div></button>`).join('')||'<p class="text-xs text-slate-500">Add a friend to start a chat.</p>';}
+        function openChat(uid){activeChat=uid;const f=friends.find(x=>x.uid===uid);document.getElementById('chat-title').textContent=f?.name||uid;renderChatFeed();}
+        function renderChatFeed(){const feed=document.getElementById('chat-feed');const arr=chats[activeChat]||[];feed.innerHTML=arr.map(m=>`<div class="flex ${m.mine?'justify-end':''}"><div class="rounded-xl px-3 py-2 max-w-[80%] ${m.mine?'bg-indigo-600 text-white':'bg-slate-800 text-slate-200'}">${m.type==='image'?`<img src="${m.value}" class="max-w-48 rounded-lg" alt="Shared image">`:m.type==='audio'?`<audio controls src="${m.value}" class="max-w-48"></audio>`:safe(m.value)}</div></div>`).join('')||'<p class="text-xs text-slate-500">No messages yet. Say hello 👋</p>';feed.scrollTop=feed.scrollHeight;}
+        function pushMessage(msg){if(!activeChat)return triggerNotification('Choose a friend first.');(chats[activeChat]??=[]).push({mine:true,...msg});saveStore('chats',chats);renderChatFeed();}
+        function sendMessage(){const el=document.getElementById('chat-input'),v=el.value.trim();if(!v)return;pushMessage({type:'text',value:v});el.value='';}
+        function sendImage(input){const file=input.files[0];if(!file||!file.type.startsWith('image/'))return;const reader=new FileReader();reader.onload=()=>pushMessage({type:'image',value:reader.result});reader.readAsDataURL(file);input.value='';}
+        async function recordVoice(){if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)return triggerNotification('Voice recording is not supported in this browser.');try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const rec=new MediaRecorder(stream),chunks=[];rec.ondataavailable=e=>chunks.push(e.data);rec.onstop=()=>{const blob=new Blob(chunks,{type:rec.mimeType||'audio/webm'}),reader=new FileReader();reader.onload=()=>pushMessage({type:'audio',value:reader.result});reader.readAsDataURL(blob);stream.getTracks().forEach(t=>t.stop());};rec.start();triggerNotification('Recording… click OK in 5 seconds to finish.');setTimeout(()=>{if(rec.state==='recording')rec.stop();},5000);}catch(e){triggerNotification('Microphone permission was not granted.');}}
+        function saveProfile(){const n=document.getElementById('profile-nickname').value.trim()||'User';document.getElementById('profile-name').textContent=n;document.getElementById('profile-avatar').textContent=n.slice(0,2).toUpperCase();saveStore('profile',{name:n,bio:document.getElementById('profile-bio').value});triggerNotification('Profile saved on this device.');}
+        function previewAvatar(input){const f=input.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{document.getElementById('profile-avatar').style.backgroundImage=`url(${reader.result})`;document.getElementById('profile-avatar').style.backgroundSize='cover';document.getElementById('profile-avatar').textContent='';};reader.readAsDataURL(f);}
+        function addNotice(text){notices.unshift({text,time:'Just now'});saveStore('notices',notices);}
+        function renderNotifications(){document.getElementById('notification-feed').innerHTML=notices.map(n=>`<div class="friend-row"><i class="fa-regular fa-bell text-violet-300"></i><div class="flex-1 text-sm">${safe(n.text)}<div class="text-xs text-slate-500 mt-1">${safe(n.time)}</div></div></div>`).join('');}
+        function saveNotificationSettings(){const settings={};document.querySelectorAll('[data-notify]').forEach(x=>settings[x.dataset.notify]=x.checked);saveStore('notification-settings',settings);triggerNotification('Notification preferences saved.');}
+
+        // Initialize App on Load
+        window.onload = function() {
+            renderTasks();
+            renderNotes();
+            const profile=loadStore('profile',null);if(profile){document.getElementById('profile-nickname').value=profile.name;document.getElementById('profile-name').textContent=profile.name;document.getElementById('profile-avatar').textContent=profile.name.slice(0,2).toUpperCase();document.getElementById('profile-bio').value=profile.bio||'';}
+            renderFriends();renderChatContacts();renderNotifications();
+        }
+    </script>
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js';
+      import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js';
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDE5fBNLnBSQGWzrGXLHWQt-6nFhulqr1E",
+        authDomain: "nexushub-2fd24.firebaseapp.com",
+        projectId: "nexushub-2fd24",
+        storageBucket: "nexushub-2fd24.firebasestorage.app",
+        messagingSenderId: "663850720209",
+        appId: "1:663850720209:web:86191dadd6c0a016399ef0",
+        measurementId: "G-56Y8R5K0P0"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const authScreen = document.getElementById('auth-screen');
+      const appShell = document.getElementById('app');
+      const authMessage = document.getElementById('auth-message');
+
+      await setPersistence(auth, browserLocalPersistence);
+      document.getElementById('google-signin').addEventListener('click', async () => {
+        authMessage.textContent = 'Opening Google sign-in…';
+        try { await signInWithPopup(auth, provider); }
+        catch (error) {
+          if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+            try { await signInWithRedirect(auth, provider); } catch (e) { authMessage.textContent = e.message; }
+          } else { authMessage.textContent = error.message; }
+        }
+      });
+      document.getElementById('signout-button').addEventListener('click', async () => { await signOut(auth); });
+      getRedirectResult(auth).catch(error => { authMessage.textContent = error.message; });
+      onAuthStateChanged(auth, user => {
+        if (user) {
+          authScreen.style.display = 'none';
+          appShell.style.display = 'flex';
+          document.getElementById('auth-user-name').textContent = user.displayName || user.email || 'Signed in';
+          const photo = document.getElementById('auth-user-photo');
+          if (user.photoURL) { photo.src = user.photoURL; photo.classList.remove('hidden'); }
+          const profileName = document.getElementById('profile-name');
+          if (profileName && user.displayName) {
+            profileName.textContent = user.displayName;
+            const nick = document.getElementById('profile-nickname'); if (nick && !localStorage.getItem('nexus-profile')) nick.value = user.displayName;
+            const avatar = document.getElementById('profile-avatar'); if (avatar) avatar.textContent = user.displayName.slice(0,2).toUpperCase();
+          }
+        } else {
+          appShell.style.display = 'none';
+          authScreen.style.display = 'flex';
+          document.getElementById('auth-user-name').textContent = '';
+          document.getElementById('auth-user-photo').classList.add('hidden');
+        }
+      });
+    </script>
+</body>
+</html>
